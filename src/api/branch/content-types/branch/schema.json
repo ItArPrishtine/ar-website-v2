@@ -66,10 +66,12 @@
       "type": "string"
     },
     "mapLink": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 800
     },
     "mapLinkWeb": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 800
     },
     "address": {
       "type": "string"
