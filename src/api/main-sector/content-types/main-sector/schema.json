@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "main_sectors",
+  "info": {
+    "singularName": "main-sector",
+    "pluralName": "main-sectors",
+    "displayName": "tre-sektoret",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "richtext"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "explore_banner": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "sequence": {
+      "type": "integer"
+    }
+  }
+}

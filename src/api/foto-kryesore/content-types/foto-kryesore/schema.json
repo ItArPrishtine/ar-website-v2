@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "foto_kryesores",
+  "info": {
+    "singularName": "foto-kryesore",
+    "pluralName": "foto-kryesores",
+    "displayName": "Foto Kryesore"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "image": {
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ],
+      "type": "media",
+      "multiple": false
+    }
+  }
+}

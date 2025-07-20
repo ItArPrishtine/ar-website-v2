@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "teachers",
+  "info": {
+    "singularName": "teacher",
+    "pluralName": "teachers",
+    "displayName": "Mesuesit",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "fullName": {
+      "type": "string"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "filialet": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::branch.branch"
+    },
+    "KF": {
+      "type": "boolean",
+      "default": false
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

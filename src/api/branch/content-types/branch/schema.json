@@ -1,0 +1,81 @@
+{
+  "kind": "collectionType",
+  "collectionName": "branches",
+  "info": {
+    "singularName": "branch",
+    "pluralName": "branches",
+    "displayName": "Filialet",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "emblem": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "description": {
+      "type": "text"
+    },
+    "subscription": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::subscription.subscription",
+      "mappedBy": "filiali"
+    },
+    "director": {
+      "type": "string"
+    },
+    "foundationDate": {
+      "type": "date"
+    },
+    "city": {
+      "type": "string"
+    },
+    "order": {
+      "type": "string"
+    },
+    "registers": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::register.register",
+      "mappedBy": "filialet"
+    },
+    "phoneNr": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    },
+    "facebook": {
+      "type": "string"
+    },
+    "instagram": {
+      "type": "string"
+    },
+    "mapLink": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "tiktok": {
+      "type": "string"
+    },
+    "linkedin": {
+      "type": "string"
+    }
+  }
+}
