@@ -68,6 +68,9 @@
     "mapLink": {
       "type": "string"
     },
+    "mapLinkWeb": {
+      "type": "string"
+    },
     "address": {
       "type": "string"
     },
