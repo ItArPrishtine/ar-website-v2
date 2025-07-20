@@ -113,3 +113,7 @@ exports
 build
 .strapi-updater.json
 .strapi
+dist/
+*.js
+*.d.ts
+.tsbuildinfo
