@@ -1,7 +1,22 @@
 module.exports = [
   'strapi::logger',
   'strapi::errors',
-  'strapi::security',
+  {
+    name: 'strapi::security',
+    config: {
+      contentSecurityPolicy: {
+        directives: {
+          'img-src': [
+            "'self'",
+            'data:',
+            'blob:',
+            'https://market-assets.strapi.io',
+            'https://ar-prishtine.s3.eu-central-1.amazonaws.com',
+          ],
+        },
+      },
+    },
+  },
   'strapi::cors',
   'strapi::poweredBy',
   'strapi::query',
