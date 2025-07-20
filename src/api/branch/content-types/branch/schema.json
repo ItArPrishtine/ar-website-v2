@@ -70,7 +70,7 @@
       "maxLength": 800
     },
     "mapLinkWeb": {
-      "type": "string",
+      "type": "text",
       "maxLength": 800
     },
     "address": {
