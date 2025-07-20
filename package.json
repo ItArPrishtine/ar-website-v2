@@ -12,8 +12,7 @@
     "start": "strapi start",
     "strapi": "strapi",
     "upgrade": "npx @strapi/upgrade latest",
-    "upgrade:dry": "npx @strapi/upgrade latest --dry",
-    "tsc": "tsc"
+    "upgrade:dry": "npx @strapi/upgrade latest --dry"
   },
   "dependencies": {
     "@strapi/plugin-users-permissions": "5.11.0",
@@ -29,7 +28,6 @@
   "devDependencies": {
     "@types/node": "^24.0.15",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3",
     "@types/nodemailer": "^6.4.10"
   },
   "engines": {
