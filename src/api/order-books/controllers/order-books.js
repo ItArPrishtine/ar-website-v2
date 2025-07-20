@@ -4,9 +4,10 @@
  * A set of functions called "actions" for `order-books`
  */
 
-const unparsed = require("koa-body/unparsed.js");
+const unparsed = Symbol.for('unparsedBody');
 
 module.exports = {
+// @ts-ignore
   orderBooks: async (ctx, next) => {
     try {
 
