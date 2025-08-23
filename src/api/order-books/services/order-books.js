@@ -20,11 +20,11 @@ function findPriceInCurrentCity(item, address) {
   let price = 0;
 
   if (address === 'PRISHTINA') {
-    price = item.product.attributes.price_euro;
+    price = item.product.price_euro;
   } else if (address === 'SHKUPI') {
-    price = item.product.attributes.price_denar;
+    price = item.product.price_denar;
   } else {
-    price = item.product.attributes.price_leke;
+    price = item.product.price_leke;
   }
 
   return price;
@@ -53,7 +53,7 @@ async function sendEmail(booksToSend, address, guest) {
 
     bodyTable +=
       "<tr style='border: 1px solid #dbdbdb; padding: 3px 5px'>" +
-      "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + item.product.attributes.title + "</td>" +
+      "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + item.product.title + "</td>" +
       "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + price + currency + "</td>" +
       "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + item.quantity + "</td>" +
       "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + total + currency + "</td>" +
