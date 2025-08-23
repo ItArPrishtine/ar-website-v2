@@ -9,16 +9,6 @@ module.exports = {
         return ctx.badRequest('Missing or invalid payload', { products, address, guest });
       }
 
-      // If clients sometimes send a whole product object, normalize it to an ID:
-      for (const p of products) {
-        if (p && typeof p.product === 'object' && p.product?.id) {
-          p.product = p.product.id;
-        }
-        if (!p?.product) {
-          return ctx.badRequest('Each item in products must include product (ID or object with id)');
-        }
-      }
-
       await strapi
         .service('api::order-books.order-books')
         .sendEmail(products, address, guest);
