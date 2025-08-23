@@ -4,19 +4,20 @@
  * A set of functions called "actions" for `order-books`
  */
 
-const unparsed = Symbol.for('unparsedBody');
-
 module.exports = {
 // @ts-ignore
   orderBooks: async (ctx, next) => {
     try {
 
-      const unparsedBody = ctx.request.body[unparsed];
-      const body = JSON.parse(unparsedBody);
+      const { products, address, guest } = ctx.request.body || {};
+
+      if (!Array.isArray(products) || !address || !guest) {
+        return ctx.badRequest('Missing or invalid payload', { products, address, guest });
+      }
 
       await strapi
         .service("api::order-books.order-books")
-        .sendEmail(body.products, body.address, body.guest);
+        .sendEmail(products, address, guest);
 
       ctx.body = body;
     } catch (err) {
