@@ -1,34 +1,31 @@
 'use strict';
 
-const sgMail = require('@sendgrid/mail');
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const { Resend } = require('resend');
+
+/**
+ * ENV needed (Railway Variables):
+ *   RESEND_API_KEY=...
+ *   RESEND_FROM=onboarding@resend.dev   (works without a domain)
+ * Optional:
+ *   ADMIN_EMAIL=agonhaxhani83@gmail.com
+ */
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 function findAmountInCurrentCity(address) {
-  let amount = '';
+  const city = String(address || '').toUpperCase();
 
-  if (address === 'PRISHTINA') {
-    amount = '€';
-  } else if (address === 'SHKUPI') {
-    amount = 'Denar';
-  } else {
-    amount = 'Lekë';
-  }
-
-  return amount;
+  if (city === 'PRISHTINA') return '€';
+  if (city === 'SHKUPI') return 'Denar';
+  return 'Lekë';
 }
 
 function findPriceInCurrentCity(item, address) {
-  let price = 0;
+  const city = String(address || '').toUpperCase();
+  const p = item?.product || {};
 
-  if (address === 'PRISHTINA') {
-    price = item.product.price_euro;
-  } else if (address === 'SHKUPI') {
-    price = item.product.price_denar;
-  } else {
-    price = item.product.price_leke;
-  }
-
-  return price;
+  if (city === 'PRISHTINA') return Number(p.price_euro || 0);
+  if (city === 'SHKUPI') return Number(p.price_denar || 0);
+  return Number(p.price_leke || 0);
 }
 
 function resolveBranchEmail(address) {
@@ -42,22 +39,35 @@ function resolveBranchEmail(address) {
   return '';
 }
 
-async function sendEmail(booksToSend, address, guest) {
+function buildOrderTable(booksToSend, address) {
   let bodyTable = '';
   let allPrices = 0;
+  const currency = findAmountInCurrentCity(address);
 
-  booksToSend.forEach((item) => {
+  (booksToSend || []).forEach((item) => {
     const price = findPriceInCurrentCity(item, address);
-    const total = Number(item.quantity) * price;
-    const currency = findAmountInCurrentCity(address);
+    const qty = Number(item?.quantity || 0);
+    const total = qty * price;
 
     bodyTable +=
       "<tr style='border: 1px solid #dbdbdb; padding: 3px 5px'>" +
-      "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + item.product.title + "</td>" +
-      "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + price + currency + "</td>" +
-      "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + item.quantity + "</td>" +
-      "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + total + currency + "</td>" +
-      "</tr>";
+      "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" +
+      String(item?.product?.title || '') +
+      "</td>" +
+      "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" +
+      price +
+      ' ' +
+      currency +
+      "</td>" +
+      "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" +
+      qty +
+      "</td>" +
+      "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" +
+      total +
+      ' ' +
+      currency +
+      "</td>" +
+      '</tr>';
 
     allPrices += total;
   });
@@ -66,61 +76,107 @@ async function sendEmail(booksToSend, address, guest) {
     "<tr><td></td><td></td><td></td><td></td></tr>" +
     "<tr style='border: 1px solid #dbdbdb; padding: 3px 5px'>" +
     "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>Totali i gjithe librave</td><td></td><td></td>" +
-    "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + allPrices + findAmountInCurrentCity(address) + "</td>" +
-    "</tr>";
+    "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" +
+    allPrices +
+    ' ' +
+    currency +
+    '</td>' +
+    '</tr>';
 
   const mainTable =
     "<table style='border: 1px solid #dbdbdb; padding: 3px 5px'>" +
-    "<thead><tr>" +
+    '<thead><tr>' +
     "<th style='border: 1px solid #dbdbdb; padding: 3px 5px'>Titulli i Librit</th>" +
     "<th style='border: 1px solid #dbdbdb; padding: 3px 5px'>Cmimi</th>" +
     "<th style='border: 1px solid #dbdbdb; padding: 3px 5px'>Sasia</th>" +
     "<th style='border: 1px solid #dbdbdb; padding: 3px 5px'>Totali</th>" +
-    "</tr></thead>" +
-    "<tbody>" + bodyTable + "</tbody></table>";
+    '</tr></thead>' +
+    '<tbody>' +
+    bodyTable +
+    '</tbody></table>';
 
-  const html =
-    "<p>Emri: <strong>" + guest.firstName + "</strong></p>" +
-    "<p>Mbiemri: <strong>" + guest.lastName + "</strong></p>" +
-    "<p>Qyteti: <strong>" + guest.city + "</strong></p>" +
-    "<p>Emaili: <strong>" + guest.email + "</strong></p>" +
-    "<p>Tel: <strong>" + guest.phoneNumber + "</strong></p>" +
-    "<p>Adresa: <strong>" + guest.address + "</strong></p>" +
-    "<p>Kodi Postar: <strong>" + guest.zipCode + "</strong></p>" +
-    mainTable;
+  return { mainTable, allPrices, currency };
+}
 
-  const branchEmail = resolveBranchEmail(address);
+function buildAdminHtml(guest, mainTable) {
+  const g = guest || {};
+  return (
+    "<p>Emri: <strong>" +
+    (g.firstName || '') +
+    '</strong></p>' +
+    "<p>Mbiemri: <strong>" +
+    (g.lastName || '') +
+    '</strong></p>' +
+    "<p>Qyteti: <strong>" +
+    (g.city || '') +
+    '</strong></p>' +
+    "<p>Emaili: <strong>" +
+    (g.email || '') +
+    '</strong></p>' +
+    "<p>Tel: <strong>" +
+    (g.phoneNumber || '') +
+    '</strong></p>' +
+    "<p>Adresa: <strong>" +
+    (g.address || '') +
+    '</strong></p>' +
+    "<p>Kodi Postar: <strong>" +
+    (g.zipCode || '') +
+    '</strong></p>' +
+    mainTable
+  );
+}
 
-  // IMPORTANT: SendGrid "from" must be verified in SendGrid
-  const from = process.env.SENDGRID_FROM; // e.g. "Punat e Përit <orders@yourdomain.com>"
+async function sendWithResend({ to, subject, html }) {
+  const fromEmail = process.env.RESEND_FROM || 'onboarding@resend.dev';
+  const from = `Punat e Përit <${fromEmail}>`;
 
-  const adminMsg = {
-    to: 'agonhaxhani83@gmail.com', // keep as-is
+  // Resend accepts string or array for `to`
+  return resend.emails.send({
     from,
-    subject: `POROSI E RE NE ${String(address).toUpperCase()}, email test = ${branchEmail}`,
+    to,
+    subject,
     html,
-  };
+  });
+}
 
-  const buyerMsg = {
-    to: guest.email,
-    from,
-    subject: 'Detajet e Porosise!',
-    html: '<h3>Porosia eshte bere me sukses</h3>' + mainTable,
-  };
+async function sendEmail(booksToSend, address, guest) {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('Missing RESEND_API_KEY env var');
+  }
+
+  const adminEmail = process.env.ADMIN_EMAIL || 'agonhaxhani83@gmail.com';
+  const city = String(address || '').toUpperCase();
+  const branchEmail = resolveBranchEmail(address); // only for logging/subject (as you wanted)
+
+  const { mainTable } = buildOrderTable(booksToSend, address);
+  const adminHtml = buildAdminHtml(guest, mainTable);
+
+  const adminSubject = `POROSI E RE NE ${city} | branchEmail=${branchEmail || 'N/A'}`;
+  const buyerSubject = 'Detajet e Porosise!';
 
   try {
-    const [adminRes] = await sgMail.send(adminMsg);
-    console.log('Admin email sent', {
-      statusCode: adminRes.statusCode,
-      // note: SendGrid doesn't always return a messageId here
-      branchEmailLogged: branchEmail,
+    const adminRes = await sendWithResend({
+      to: adminEmail,
+      subject: adminSubject,
+      html: adminHtml,
     });
 
-    const [buyerRes] = await sgMail.send(buyerMsg);
-    console.log('Buyer email sent', { statusCode: buyerRes.statusCode });
+    const buyerRes = await sendWithResend({
+      to: guest?.email,
+      subject: buyerSubject,
+      html: '<h3>Porosia eshte bere me sukses</h3>' + mainTable,
+    });
 
+    console.log('Emails sent successfully', {
+      admin: { id: adminRes?.id },
+      buyer: { id: buyerRes?.id },
+      branchEmailLogged: branchEmail,
+      city,
+    });
   } catch (error) {
-    console.error('SendGrid error:', error?.response?.body || error);
+    // Resend often returns useful data in error.response / error.message
+    console.error('Error sending emails:', error?.response || error?.message || error);
+    throw error;
   }
 }
 
