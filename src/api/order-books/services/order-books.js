@@ -89,10 +89,23 @@ async function sendEmail(booksToSend, address, guest) {
     "<p>Kodi Postar: <strong>" + guest.zipCode + "</strong></p>" +
     mainTable;
 
+  let branchEmail = "";
+  if (address.toUpperCase() === "PRISHTINA") {
+    branchEmail = "promovimi.arprishtine@gmail.com";
+  } else if (address.toUpperCase() === "SHKUPI") {
+    branchEmail = "akropolirisk@gmail.com";
+  } else if (address.toUpperCase() === "VLORA") {
+    branchEmail = "akropoliirivlore@gmail.com";
+  } else if (address.toUpperCase() === "TIRANA") {
+    branchEmail = "nefersilent@gmail.com";
+  } else if (address.toUpperCase() === "DURRES") {
+    branchEmail = "kreshnikqorraj@gmail.com";
+  }
+
   const mailOptions = {
     from: 'punatepret@gmail.com',
     to: 'agonhaxhani83@gmail.com',
-    subject: `POROSI E RE NE ${address.toUpperCase()}`,
+    subject: `POROSI E RE NE ${address.toUpperCase()}, email test = ${branchEmail}`,
     html: html,
   };
 
