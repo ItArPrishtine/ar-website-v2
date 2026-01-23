@@ -31,17 +31,31 @@ function findPriceInCurrentCity(item, address) {
 }
 
 async function sendEmail(booksToSend, address, guest) {
+  // const transporter = nodemailer.createTransport({
+  //   service: 'gmail',
+  //   secure: false,
+  //   tls: {
+  //     rejectUnauthorized: false,
+  //   },
+  //   auth: {
+  //     user: 'punatepret@gmail.com',
+  //     pass: 'ajatsplzyhexhyub',
+  //   },
+  // });
+
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    secure: false,
-    tls: {
-      rejectUnauthorized: false,
-    },
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // STARTTLS
     auth: {
       user: 'punatepret@gmail.com',
       pass: 'ajatsplzyhexhyub',
     },
+    connectionTimeout: 30_000,
+    greetingTimeout: 30_000,
+    socketTimeout: 30_000,
   });
+
 
   let bodyTable = '';
   let allPrices = 0;
@@ -117,9 +131,25 @@ async function sendEmail(booksToSend, address, guest) {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    await transporter.sendMail(buyer);
-    console.log('Emails sent successfully');
+
+    await transporter.verify();
+    console.log("SMTP transporter verified");
+    
+    const info1 = await transporter.sendMail(mailOptions);
+    console.log('Admin mail result:', {
+      messageId: info1.messageId,
+      accepted: info1.accepted,
+      rejected: info1.rejected,
+      response: info1.response,
+    });
+    
+    const info2 = await transporter.sendMail(buyer);
+    console.log('Buyer mail result:', {
+      messageId: info2.messageId,
+      accepted: info2.accepted,
+      rejected: info2.rejected,
+      response: info2.response,
+    });
   } catch (error) {
     console.error('Error sending emails:', error);
   }
