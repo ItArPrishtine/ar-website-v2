@@ -16,6 +16,24 @@ function findAmountInCurrentCity(address) {
   return amount;
 }
 
+function findEmailInCurrentCity(address) {
+  let email = '';
+
+  if (address === 'PRISHTINA') {
+    email = 'promovimi.arprishtine@gmail.com';
+  } else if (address === 'SHKUPI') {
+    email = 'promovimi.arprishtine@gmail.com';
+  } else if (address === 'TIRANA') {
+    email = 'denisaaa968@gmail.com';
+  } else if (address === 'VLORA') {
+    email = 'akropoliirivlore@gmail.com';
+  } else {
+    email = 'kreshnikqorraj@gmail.com';
+  }
+
+  return amount;
+}
+
 function findPriceInCurrentCity(item, address) {
   let price = 0;
 
@@ -91,7 +109,7 @@ async function sendEmail(booksToSend, address, guest) {
 
   const mailOptions = {
     from: 'punatepret@gmail.com',
-    to: 'agonhaxhani83@gmail.com',
+    to: findEmailInCurrentCity(address),
     subject: `POROSI E RE NE ${address.toUpperCase()}`,
     html: html,
   };
