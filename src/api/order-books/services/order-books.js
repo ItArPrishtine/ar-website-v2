@@ -1,132 +1,142 @@
 'use strict';
 
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+/* -------------------- Helpers -------------------- */
 
 function findAmountInCurrentCity(address) {
-  let amount = '';
-
-  if (address === 'PRISHTINA') {
-    amount = '€';
-  } else if (address === 'SHKUPI') {
-    amount = 'Denar';
-  } else {
-    amount = 'Lekë';
-  }
-
-  return amount;
-}
-
-function findEmailInCurrentCity(address) {
-  let email = '';
-
-  if (address === 'PRISHTINA') {
-    email = 'promovimi.arprishtine@gmail.com';
-  } else if (address === 'SHKUPI') {
-    email = 'promovimi.arprishtine@gmail.com';
-  } else if (address === 'TIRANA') {
-    email = 'denisaaa968@gmail.com';
-  } else if (address === 'VLORA') {
-    email = 'akropoliirivlore@gmail.com';
-  } else {
-    email = 'kreshnikqorraj@gmail.com';
-  }
-
-  return amount;
+  const city = String(address || '').toUpperCase();
+  if (city === 'PRISHTINA') return '€';
+  if (city === 'SHKUPI') return 'Denar';
+  return 'Lekë';
 }
 
 function findPriceInCurrentCity(item, address) {
-  let price = 0;
+  const city = String(address || '').toUpperCase();
+  const p = item?.product || {};
 
-  if (address === 'PRISHTINA') {
-    price = item.product.price_euro;
-  } else if (address === 'SHKUPI') {
-    price = item.product.price_denar;
-  } else {
-    price = item.product.price_leke;
-  }
-
-  return price;
+  if (city === 'PRISHTINA') return Number(p.price_euro || 0);
+  if (city === 'SHKUPI') return Number(p.price_denar || 0);
+  return Number(p.price_leke || 0);
 }
 
-async function sendEmail(booksToSend, address, guest) {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    secure: false,
-    tls: {
-      rejectUnauthorized: false,
-    },
-    auth: {
-      user: 'punatepret@gmail.com',
-      pass: 'ajatsplzyhexhyub',
-    },
-  });
+function resolveBranchEmail(address) {
+  const city = String(address || '').toUpperCase();
+  if (city === 'PRISHTINA') return 'promovimi.arprishtine@gmail.com';
+  if (city === 'SHKUPI') return 'akropolirisk@gmail.com';
+  if (city === 'VLORA') return 'akropoliirivlore@gmail.com';
+  if (city === 'TIRANA') return 'nefersilent@gmail.com';
+  if (city === 'DURRES') return 'kreshnikqorraj@gmail.com';
+  return '';
+}
 
-  let bodyTable = '';
-  let allPrices = 0;
+/* -------------------- HTML Builders -------------------- */
 
-  booksToSend.forEach((item) => {
+function buildOrderTable(books, address) {
+  let rows = '';
+  let totalSum = 0;
+  const currency = findAmountInCurrentCity(address);
+
+  (books || []).forEach((item) => {
     const price = findPriceInCurrentCity(item, address);
-    const total = Number(item.quantity) * price;
-    const currency = findAmountInCurrentCity(address);
+    const qty = Number(item.quantity || 0);
+    const total = price * qty;
 
-    bodyTable +=
-      "<tr style='border: 1px solid #dbdbdb; padding: 3px 5px'>" +
-      "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + item.product.title + "</td>" +
-      "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + price + currency + "</td>" +
-      "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + item.quantity + "</td>" +
-      "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + total + currency + "</td>" +
-      "</tr>";
+    rows += `
+      <tr>
+        <td>${item.product.title}</td>
+        <td>${price} ${currency}</td>
+        <td>${qty}</td>
+        <td>${total} ${currency}</td>
+      </tr>
+    `;
 
-    allPrices += total;
+    totalSum += total;
   });
 
-  bodyTable +=
-    "<tr><td></td><td></td><td></td><td></td></tr>" +
-    "<tr style='border: 1px solid #dbdbdb; padding: 3px 5px'>" +
-    "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>Totali i gjithe librave</td><td></td><td></td>" +
-    "<td style='border: 1px solid #dbdbdb; padding: 3px 5px'>" + allPrices + findAmountInCurrentCity(address) + "</td>" +
-    "</tr>";
+  rows += `
+    <tr><td colspan="3"><strong>Totali i gjithe librave</strong></td>
+    <td><strong>${totalSum} ${currency}</strong></td></tr>
+  `;
 
-  const mainTable =
-    "<table style='border: 1px solid #dbdbdb; padding: 3px 5px'>" +
-    "<thead><tr>" +
-    "<th style='border: 1px solid #dbdbdb; padding: 3px 5px'>Titulli i Librit</th>" +
-    "<th style='border: 1px solid #dbdbdb; padding: 3px 5px'>Cmimi</th>" +
-    "<th style='border: 1px solid #dbdbdb; padding: 3px 5px'>Sasia</th>" +
-    "<th style='border: 1px solid #dbdbdb; padding: 3px 5px'>Totali</th>" +
-    "</tr></thead>" +
-    "<tbody>" + bodyTable + "</tbody></table>";
+  return `
+    <table border="1" cellpadding="6" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Titulli i Librit</th>
+          <th>Cmimi</th>
+          <th>Sasia</th>
+          <th>Totali</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
 
-  const html =
-    "<p>Emri: <strong>" + guest.firstName + "</strong></p>" +
-    "<p>Mbiemri: <strong>" + guest.lastName + "</strong></p>" +
-    "<p>Qyteti: <strong>" + guest.city + "</strong></p>" +
-    "<p>Emaili: <strong>" + guest.email + "</strong></p>" +
-    "<p>Tel: <strong>" + guest.phoneNumber + "</strong></p>" +
-    "<p>Adresa: <strong>" + guest.address + "</strong></p>" +
-    "<p>Kodi Postar: <strong>" + guest.zipCode + "</strong></p>" +
-    mainTable;
+function buildAdminHtml(guest, tableHtml) {
+  return `
+    <p>Emri: <strong>${guest.firstName}</strong></p>
+    <p>Mbiemri: <strong>${guest.lastName}</strong></p>
+    <p>Qyteti: <strong>${guest.city}</strong></p>
+    <p>Emaili: <strong>${guest.email}</strong></p>
+    <p>Tel: <strong>${guest.phoneNumber}</strong></p>
+    <p>Adresa: <strong>${guest.address}</strong></p>
+    <p>Kodi Postar: <strong>${guest.zipCode}</strong></p>
+    ${tableHtml}
+  `;
+}
 
-  const mailOptions = {
-    from: 'punatepret@gmail.com',
-    to: findEmailInCurrentCity(address),
-    subject: `POROSI E RE NE ${address.toUpperCase()}`,
-    html: html,
-  };
+/* -------------------- Main Function -------------------- */
 
-  const buyer = {
-    from: 'punatepret@gmail.com',
-    to: guest.email,
-    subject: 'Detajet e Porosise!',
-    html: '<h3>Porosia eshte bere me sukses</h3>' + mainTable,
+async function sendEmail(booksToSend, address, guest) {
+  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_FROM) {
+    throw new Error('Missing SendGrid environment variables');
+  }
+
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const branchEmail = resolveBranchEmail(address);
+  const city = String(address).toUpperCase();
+
+  const orderTable = buildOrderTable(booksToSend, address);
+  const adminHtml = buildAdminHtml(guest, orderTable);
+
+  const from = {
+    email: process.env.SENDGRID_FROM,
+    name: 'Punat e Përit',
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    await transporter.sendMail(buyer);
-    console.log('Emails sent successfully');
-  } catch (error) {
-    console.error('Error sending emails:', error);
+    /* ---- Admin email ---- */
+    await sgMail.send({
+      to: adminEmail,
+      from,
+      subject: `POROSI E RE NE ${city} | branch=${branchEmail}`,
+      html: adminHtml,
+    });
+
+    /* ---- Buyer email ---- */
+    await sgMail.send({
+      to: guest.email,
+      from,
+      subject: 'Detajet e Porosise!',
+      html: `<h3>Porosia eshte bere me sukses</h3>${orderTable}`,
+    });
+
+    console.log('SendGrid emails sent successfully', {
+      city,
+      branchEmail,
+      adminEmail,
+      buyerEmail: guest.email,
+    });
+  } catch (err) {
+    console.error(
+      'SendGrid error:',
+      err?.response?.body || err.message || err
+    );
+    throw err;
   }
 }
 
