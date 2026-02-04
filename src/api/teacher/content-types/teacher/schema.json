@@ -37,6 +37,9 @@
     },
     "description": {
       "type": "text"
+    },
+    "sequence": {
+      "type": "integer"
     }
   }
 }

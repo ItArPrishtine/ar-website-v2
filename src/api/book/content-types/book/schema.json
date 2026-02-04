@@ -37,6 +37,15 @@
     },
     "price_denar": {
       "type": "decimal"
+    },
+    "author": {
+      "type": "string"
+    },
+    "pagesNr": {
+      "type": "integer"
+    },
+    "sequence": {
+      "type": "integer"
     }
   }
 }
