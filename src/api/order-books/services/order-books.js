@@ -96,7 +96,6 @@ async function sendEmail(booksToSend, address, guest) {
     throw new Error('Missing SendGrid environment variables');
   }
 
-  const adminEmail = process.env.ADMIN_EMAIL;
   const branchEmail = resolveBranchEmail(address);
   const city = String(address).toUpperCase();
 
@@ -105,15 +104,15 @@ async function sendEmail(booksToSend, address, guest) {
 
   const from = {
     email: process.env.SENDGRID_FROM,
-    name: 'Punat e Përit',
+    name: 'Botime Akropoli i ri',
   };
 
   try {
     /* ---- Admin email ---- */
     await sgMail.send({
-      to: adminEmail,
+      to: branchEmail,
       from,
-      subject: `POROSI E RE NE ${city} | branch=${branchEmail}`,
+      subject: `Botime Akropoli i ri: Porosi e Re`,
       html: adminHtml,
     });
 
@@ -121,7 +120,7 @@ async function sendEmail(booksToSend, address, guest) {
     await sgMail.send({
       to: guest.email,
       from,
-      subject: 'Detajet e Porosise!',
+      subject: 'Detaje nga Porosia!',
       html: `<h3>Porosia eshte bere me sukses</h3>${orderTable}`,
     });
 
