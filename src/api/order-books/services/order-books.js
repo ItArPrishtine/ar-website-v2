@@ -24,7 +24,7 @@ function findPriceInCurrentCity(item, address) {
 
 function resolveBranchEmail(address) {
   const city = String(address || '').toUpperCase();
-  if (city === 'PRISHTINA') return 'promovimi.arprishtine@gmail.com';
+  if (city === 'PRISHTINA') return 'agonhaxhani83@gmail.com';
   if (city === 'SHKUPI') return 'akropolirisk@gmail.com';
   if (city === 'VLORA') return 'akropoliirivlore@gmail.com';
   if (city === 'TIRANA') return 'nefersilent@gmail.com';
