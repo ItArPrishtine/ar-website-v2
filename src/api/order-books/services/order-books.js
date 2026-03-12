@@ -124,12 +124,7 @@ async function sendEmail(booksToSend, address, guest) {
       html: `<h3>Porosia eshte bere me sukses</h3>${orderTable}`,
     });
 
-    console.log('SendGrid emails sent successfully', {
-      city,
-      branchEmail,
-      process.env.SENDGRID_FROM,
-      buyerEmail: guest.email,
-    });
+    console.log('SendGrid emails sent successfully');
   } catch (err) {
     console.error(
       'SendGrid error:',
