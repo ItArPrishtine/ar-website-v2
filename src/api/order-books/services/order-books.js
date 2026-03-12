@@ -89,7 +89,9 @@ function buildAdminHtml(guest, tableHtml) {
   `;
 }
 
+
 /* -------------------- Main Function -------------------- */
+
 
 async function sendEmail(booksToSend, address, guest) {
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_FROM) {
