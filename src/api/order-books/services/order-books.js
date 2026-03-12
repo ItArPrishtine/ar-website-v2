@@ -127,7 +127,7 @@ async function sendEmail(booksToSend, address, guest) {
     console.log('SendGrid emails sent successfully', {
       city,
       branchEmail,
-      adminEmail,
+      process.env.SENDGRID_FROM,
       buyerEmail: guest.email,
     });
   } catch (err) {
